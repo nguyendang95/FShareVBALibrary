@@ -597,7 +597,13 @@ Private Function AddBulkFileOrFolderLinkCodes(LinkCodes As String) As String
 End Function
 
 Private Function GetFileNameFromURL(URL As String) As String
-    GetFileNameFromURL = Mid(URL, InStrRev(URL, "/") + 1, Len(URL) - InStrRev(URL, "/") + 1)
+    Dim strResult As String
+    strResult = Mid(URL, InStrRev(URL, "/") + 1, Len(URL) - InStrRev(URL, "/") + 1)
+    strResult = Replace(strResult, "%20", " ")
+    strResult = Replace(strResult, "%22", Chr(34))
+    strResult = Replace(strResult, "%27", Chr(39))
+    strResult = Replace(strResult, "%25", "%")
+    GetFileNameFromURL = strResult
 End Function
 
 Private Function Quote(Text As String) As String
