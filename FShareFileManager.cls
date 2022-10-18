@@ -74,7 +74,7 @@ Public Sub DownloadFile(URL As String, Optional Password As String = vbNullStrin
     Set objDict = Nothing
 End Sub
 
-Private Sub DownloadFileFromURL(URL As String)
+Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objFileStream As ADODB.Stream
     Set objWinHTTP = New WinHttp.WinHttpRequest
@@ -87,7 +87,7 @@ Private Sub DownloadFileFromURL(URL As String)
                 .Open
                 .Type = adTypeBinary
                 .Write objWinHTTP.ResponseBody
-                .SaveToFile GetFileNameFromURL(URL), adSaveCreateOverWrite
+                .SaveToFile DestinationFolder & "\" & GetFileNameFromURL(URL), adSaveCreateOverWrite
                 .Close
             End With
         End If
