@@ -215,10 +215,11 @@ Public Sub ExportToTextFile(DestinationFolder As String)
     Set objFSO = New Scripting.FileSystemObject
     Set objTextFile = objFSO.CreateTextFile(DestinationFolder & "\" & "InformationAbout" & Id & ".txt", True, True)
     With objTextFile
-        .WriteLine "Fshare Account Information: " & vbCrLf
+        .WriteLine "Fshare Account Information: "
         .WriteLine
         .WriteLine "Id: " & Id
         .WriteLine "Level: " & Level
+        .WriteLine "Account type: " & AccountType
         .WriteLine "Name: " & Name
         .WriteLine "Phone: " & Phone
         .WriteLine "Birthday: " & Birthday
@@ -238,7 +239,6 @@ Public Sub ExportToTextFile(DestinationFolder As String)
         .WriteLine "Webspace secured used: " & CStr(WebspaceSecuredUsed)
         .WriteLine "Amount: " & CStr(Amount)
         .WriteLine "Download time available: " & CStr(DownloadTimeAvailable)
-        .WriteLine "Account type: " & AccountType
         .Close
     End With
     Set objFSO = Nothing
