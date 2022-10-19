@@ -107,6 +107,7 @@ Public Function Login() As FShareFileManager
             With objFileManager
                 .SessionId = objDict.Item("session_id")
                 .UserAgent = UserAgent
+                .Token = objDict.Item("token")
             End With
         ElseIf .Status <> 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)

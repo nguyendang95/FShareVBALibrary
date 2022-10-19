@@ -74,7 +74,7 @@ Public Sub DownloadFile(URL As String, Optional Password As String = vbNullStrin
     Set objDict = Nothing
 End Sub
 
-Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
+Private Sub DownloadFileFromURL(URL As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objFileStream As ADODB.Stream
     Set objWinHTTP = New WinHttp.WinHttpRequest
@@ -87,7 +87,7 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
                 .Open
                 .Type = adTypeBinary
                 .Write objWinHTTP.ResponseBody
-                .SaveToFile DestinationFolder & "\" & GetFileNameFromURL(URL), adSaveCreateOverWrite
+                .SaveToFile GetFileNameFromURL(URL), adSaveCreateOverWrite
                 .Close
             End With
         End If
@@ -126,7 +126,7 @@ Public Function GetUsersFileOrFolderList(PageIndex As Integer, Ext As String, Op
                 .AllowFollow = objDict.Item("allow_follow")
                 .NumFollower = CLng(objDict.Item("num_follower"))
             End With
-            Set ListUsersFileOrFolder = objFileOrFolderInfo
+            Set GetUsersFileOrFolderList = objFileOrFolderInfo
         Else: Err.Raise vbObjectError + 201, , .ResponseText
         End If
     End With
@@ -271,7 +271,7 @@ Public Sub CreateFilePass(FileLinkCodes As String, Optional Password As String =
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (FileOrFolderLinkCodes) & " ] " & _
+                    AddBulkFileOrFolderLinkCodes (FileLinkCodes) & " ] " & _
                     Quote("pass") & ": " & Quote(Password) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
@@ -296,7 +296,7 @@ Public Sub ChangeSecure(FileLinkCodes As String, Optional Status As Integer = 0)
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (FileOrFolderLinkCodes) & " ] " & _
+                    AddBulkFileOrFolderLinkCodes (FileLinkCodes) & " ] " & _
                     Quote("status") & ": " & CStr(Status) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
@@ -321,7 +321,7 @@ Public Sub SetDirectLink(FileLinkCodes As String, Optional Status As Integer = 0
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (FileOrFolderLinkCodes) & " ] " & _
+                    AddBulkFileOrFolderLinkCodes (FileLinkCodes) & " ] " & _
                     Quote("status") & ": " & CStr(Status) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
@@ -403,7 +403,7 @@ Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optiona
                 .AllowFollow = objDict.Item("allow_follow")
                 .NumFollower = CLng(objDict.Item("num_follower"))
             End With
-            Set ListUsersFileOrFolder = objFileOrFolderInfo
+            Set GetPublicFolderList = objFileOrFolderInfo
         Else: Err.Raise vbObjectError + 201, , .ResponseText
         End If
     End With
@@ -424,7 +424,7 @@ Public Function GetTopFollowMovie() As FShareTopFollowMovie
         .SetRequestHeader "User-Agent", UserAgent
         .Send
         If .Status = 200 Then
-            Set objDict = JsonConverter.ConvertToJson(.ResponseText)
+            Set objDict = JsonConverter.ParseJson(.ResponseText)
             Set objTopFollowMovie = New FShareTopFollowMovie
             With objTopFollowMovie
                 .Name = objDict.Item("name")
@@ -453,7 +453,7 @@ Public Function GetListFollow()
         .SetRequestHeader "User-Agent", UserAgent
         .Send
         If .Status = 200 Then
-            Set objDict = JsonConverter.ConvertToJson(.ResponseText)
+            Set objDict = JsonConverter.ParseJson(.ResponseText)
             Set objListFollow = New FShareListFollow
             With objListFollow
                 .Name = objDict.Item("name")
@@ -549,7 +549,7 @@ Public Function ListFavorite() As FShareFileOrFolderInfo
                 .AllowFollow = objDict.Item("allow_follow")
                 .NumFollower = CLng(objDict.Item("num_follower"))
             End With
-            Set ListUsersFileOrFolder = objFileOrFolderInfo
+            Set ListFavorite = objFileOrFolderInfo
         Else: Err.Raise vbObjectError + 201, , .ResponseText
         End If
     End With
@@ -568,7 +568,7 @@ Public Sub ChangeFavorite(LinkCodes As String, Optional Status As ChangeFavorite
     End Select
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (FileOrFolderLinkCodes) & " ] " & _
+                    AddBulkFileOrFolderLinkCodes (LinkCodes) & " ] " & _
                     Quote("status") & ": " & strStatus & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
@@ -597,13 +597,7 @@ Private Function AddBulkFileOrFolderLinkCodes(LinkCodes As String) As String
 End Function
 
 Private Function GetFileNameFromURL(URL As String) As String
-    Dim strResult As String
-    strResult = Mid(URL, InStrRev(URL, "/") + 1, Len(URL) - InStrRev(URL, "/") + 1)
-    strResult = Replace(strResult, "%20", " ")
-    strResult = Replace(strResult, "%22", Chr(34))
-    strResult = Replace(strResult, "%27", Chr(39))
-    strResult = Replace(strResult, "%25", "%")
-    GetFileNameFromURL = strResult
+    GetFileNameFromURL = Mid(URL, InStrRev(URL, "/") + 1, Len(URL) - InStrRev(URL, "/") + 1)
 End Function
 
 Private Function Quote(Text As String) As String
