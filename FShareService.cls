@@ -119,6 +119,9 @@ Public Function Login() As FShareFileManager
         ElseIf .Status = 403 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             Err.Raise vbObjectError + 403, , objDict.Item("msg")
+        ElseIf .Status = 405 Then
+            Set objDict = JsonConverter.ParseJson(.ResponseText)
+            Err.Raise vbObjectError + 405, , objDict.Item("msg")
         End If
     End With
     Set objWinHTTP = Nothing
