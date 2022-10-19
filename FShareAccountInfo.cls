@@ -208,3 +208,40 @@ End Property
 Public Property Get WebspaceUsed() As String
     WebspaceUsed = m_WebspaceUsed
 End Property
+
+Public Sub ExportToTextFile(DestinationFolder As String)
+    Dim objFSO As Scripting.FileSystemObject
+    Dim objTextFile As Scripting.TextStream
+    Set objFSO = New Scripting.FileSystemObject
+    Set objTextFile = objFSO.CreateTextFile(DestinationFolder & "\" & "InformationAbout" & Id & ".txt", True, True)
+    With objTextFile
+        .WriteLine "Fshare Account Information: " & vbCrLf
+        .WriteLine
+        .WriteLine "Id: " & Id
+        .WriteLine "Level: " & Level
+        .WriteLine "Name: " & Name
+        .WriteLine "Phone: " & Phone
+        .WriteLine "Birthday: " & Birthday
+        .WriteLine "Gender: " & Gender
+        .WriteLine "Address: " & Address
+        .WriteLine "ID card: " & IDCard
+        .WriteLine "City: " & City
+        .WriteLine "E-mail: " & Email
+        .WriteLine "Join date: " & JoinDate
+        .WriteLine "Total points: " & CStr(TotalPoints)
+        .WriteLine "Expire VIP: " & ExpireVip
+        .WriteLine "Traffic: " & CStr(Traffic)
+        .WriteLine "Traffic used: " & CStr(TrafficUsed)
+        .WriteLine "Webspace: " & Webspace
+        .WriteLine "Webspace used: " & CStr(WebspaceUsed)
+        .WriteLine "Webspace secured: " & CStr(WebspaceSecured)
+        .WriteLine "Webspace secured used: " & CStr(WebspaceSecuredUsed)
+        .WriteLine "Amount: " & CStr(Amount)
+        .WriteLine "Download time available: " & CStr(DownloadTimeAvailable)
+        .WriteLine "Account type: " & AccountType
+        .Close
+    End With
+    Set objFSO = Nothing
+    Set objTextFile = Nothing
+End Sub
+
