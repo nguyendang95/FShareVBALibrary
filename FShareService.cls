@@ -113,6 +113,7 @@ Public Function Login() As FShareFileManager
             Err.Raise vbObjectError + CInt(objDict.Item("code")), , objDict.Item("msg")
         End If
     End With
+    Set Login = objFileManager
     Set objWinHTTP = Nothing
     Set objDict = Nothing
     Set objFileManager = Nothing
