@@ -108,20 +108,9 @@ Public Function Login() As FShareFileManager
                 .SessionId = objDict.Item("session_id")
                 .UserAgent = UserAgent
             End With
-        ElseIf .Status = 406 Then
-            Err.Raise vbObjectError + 406, , "Account not activated"
-        ElseIf .Status = 409 Then
-            Err.Raise vbObjectError + 409, , "Account is locked login"
-        ElseIf .Status = 410 Then
-            Err.Raise vbObjectError + 410, , "Account is locked"
-        ElseIf .Status = 424 Then
-            Err.Raise vbObjectError + 424, , "You entered wrong password 3 times, please enter again after 10 minutes"
-        ElseIf .Status = 403 Then
+        ElseIf .Status <> 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
-            Err.Raise vbObjectError + 403, , objDict.Item("msg")
-        ElseIf .Status = 405 Then
-            Set objDict = JsonConverter.ParseJson(.ResponseText)
-            Err.Raise vbObjectError + 405, , objDict.Item("msg")
+            Err.Raise vbObjectError + CInt(objDict.Item("code")), , objDict.Item("msg")
         End If
     End With
     Set objWinHTTP = Nothing
