@@ -17,6 +17,7 @@ Private m_Token As String
 Private m_SessionId As String
 Private m_LoggedIn As Boolean
 Private m_LoggedOut As Boolean
+Private m_ActiveService As WinHttp.WinHttpRequest
 
 Public Property Let UserEmail(value As String)
     m_UserEmail = value
@@ -82,6 +83,14 @@ Public Property Get LoggedOut() As Boolean
     LoggedOut = m_LoggedOut
 End Property
 
+Public Property Get ActiveService() As WinHttp.WinHttpRequest
+    Set ActiveService = m_ActiveService
+End Property
+
+Public Property Set ActiveService(value As WinHttp.WinHttpRequest)
+    Set m_ActiveService = value
+End Property
+
 Public Function Login() As FShareFileManager
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Scripting.Dictionary
@@ -99,6 +108,7 @@ Public Function Login() As FShareFileManager
         .SetRequestHeader "Accept", "application/json"
         .Send strRequestBody
         If .Status = 200 Then
+            Set ActiveService = objWinHTTP
             LoggedIn = True
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             Token = objDict.Item("token")
@@ -108,7 +118,9 @@ Public Function Login() As FShareFileManager
                 .SessionId = objDict.Item("session_id")
                 .UserAgent = UserAgent
                 .Token = objDict.Item("token")
+                Set .ActiveService = ActiveService
             End With
+            Set ActiveService = objWinHTTP
         ElseIf .Status <> 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             Err.Raise vbObjectError + CInt(objDict.Item("code")), , objDict.Item("msg")
@@ -124,21 +136,19 @@ Public Sub LogOut()
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Scripting.Dictionary
     Dim strRequestBody As String
-    strRequestBody = "{ " & _
-                Quote("session_id") & ": " & Quote(SessionId) & " " & _
-                "}"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", "https://api.fshare.vn/api/user/logout"
-        .SetRequestHeader "User-Agent", UserAgent
+        .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "Accept", "application/json"
-        .Send strRequestBody
+        .Send
         If .Status = 201 Then
             Err.Raise vbObjectError + 201, , "Not logged in yet!"
         ElseIf .Status = 200 Then
             LoggedOut = True
             Token = vbNullString
             SessionId = vbNullString
+            Set ActiveService = Nothing
         End If
     End With
     Set objWinHTTP = Nothing
@@ -150,7 +160,7 @@ Public Function UserInfo() As FShareAccountInfo
     Dim objDict As Scripting.Dictionary
     Dim objAccountInfo As FShareAccountInfo
     Dim strRequestBody As String
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", "https://api.fshare.vn/api/user/get"
         .SetRequestHeader "User-Agent", UserAgent

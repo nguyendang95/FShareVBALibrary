@@ -12,6 +12,7 @@ Option Explicit
 Private m_SessionId As String
 Private m_UserAgent As String
 Private m_Token As String
+Private m_ActiveService As WinHttp.WinHttpRequest
 
 Public Enum ChangeFavoriteStatus
     FavoriteEnabled = 1
@@ -47,6 +48,14 @@ Public Property Get Token() As String
     Token = m_Token
 End Property
 
+Public Property Get ActiveService() As WinHttp.WinHttpRequest
+    Set ActiveService = m_ActiveService
+End Property
+
+Public Property Set ActiveService(value As WinHttp.WinHttpRequest)
+    Set m_ActiveService = value
+End Property
+
 Public Sub DownloadFile(URL As String, Optional Password As String = vbNullString, Optional ZipFlag As Integer = 0)
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Scripting.Dictionary
@@ -57,7 +66,7 @@ Public Sub DownloadFile(URL As String, Optional Password As String = vbNullStrin
                     Quote("url") & ": " & Quote(URL) & ", " & _
                     Quote("token") & ": " & Quote(Token) & ", " & _
                     Quote("zipflag") & ": " & CStr(ZipFlag)
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/session/download"
         .SetRequestHeader "Accept", "application/json"
@@ -77,7 +86,7 @@ End Sub
 Private Sub DownloadFileFromURL(URL As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objFileStream As ADODB.Stream
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", URL
         .Send
@@ -100,7 +109,7 @@ Public Function GetUsersFileOrFolderList(PageIndex As Integer, Ext As String, Op
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Scripting.Dictionary
     Dim objFileOrFolderInfo As FShareFileOrFolderInfo
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", "https://api.fshare.vn/api/fileops/list?ext=" & Ext & "?path=" & Path & "?dirOnly=" & CStr(DirOnly) & "?limit=" & CStr(Limit)
         .SetRequestHeader "Accept", "application/json"
@@ -149,7 +158,7 @@ Public Function GetTotalFileInFolder(FolderURL As String, Optional HaveFile As B
                     Quote("url") & ": " & Quote(FolderURL) & ", " & _
                     Quote("have_file") & ": " & Quote(strHaveFile) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/getTotalFileInFolder"
         .SetRequestHeader "Accept", "application/json"
@@ -171,11 +180,11 @@ Public Function CreateFolder(FolderName As String, Optional InDir As String = "0
     Dim objDict As Scripting.Dictionary
     Dim strRequestBody As String
     strRequestBody = "{ " & _
-                    Quote("name") & ": " & Quote(FolderName) & ", " & _
-                    Quote("token") & ": " & Quote(Token) & ", " & _
-                    Quote("in_dir") & ": " & Quote(InDir) & _
+                    Quote("name") & ":" & Quote(FolderName) & "," & _
+                    Quote("token") & ":" & Quote(Token) & "," & _
+                    Quote("in_dir") & ":" & Quote(InDir) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/createfolder"
         .SetRequestHeader "Accept", "application/json"
@@ -201,7 +210,7 @@ Public Sub RenameFileOrFolder(NewName As String, LinkCode As String)
                     Quote("file") & ": " & Quote(LinkCode) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/rename"
         .SetRequestHeader "Accept", "application/json"
@@ -226,7 +235,7 @@ Public Sub MoveFileOrFolder(FileOrFolderLinkCodes As String, Optional Destinatio
                     Quote("token") & ": " & Quote(Token) & ", " & _
                     Quote("to") & ": " & Quote(DestinationFileOrFolderLinkCode) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/move"
         .SetRequestHeader "Accept", "application/json"
@@ -250,7 +259,7 @@ Public Sub DeleteFileOrFolder(FileOrFolderLinkCodes As String)
                     AddBulkFileOrFolderLinkCodes (FileOrFolderLinkCodes) & " ] " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/delete"
         .SetRequestHeader "Accept", "application/json"
@@ -275,7 +284,7 @@ Public Sub CreateFilePass(FileLinkCodes As String, Optional Password As String =
                     Quote("pass") & ": " & Quote(Password) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/createFilePass"
         .SetRequestHeader "Accept", "application/json"
@@ -300,7 +309,7 @@ Public Sub ChangeSecure(FileLinkCodes As String, Optional Status As Integer = 0)
                     Quote("status") & ": " & CStr(Status) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/changeSecure"
         .SetRequestHeader "Accept", "application/json"
@@ -325,7 +334,7 @@ Public Sub SetDirectLink(FileLinkCodes As String, Optional Status As Integer = 0
                     Quote("status") & ": " & CStr(Status) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/setDirectLink"
         .SetRequestHeader "Accept", "application/json"
@@ -350,7 +359,7 @@ Public Sub Duplicate(FileToDuplicateLinkCode As String, DestinationFolderLinkCod
                     Quote("confirm") & ": true, " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/duplicate"
         .SetRequestHeader "Accept", "application/json"
@@ -377,7 +386,7 @@ Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optiona
                     Quote("path") & ": " & Quote(Path) & ", " & _
                     Quote("url") & ": " & Quote(URL) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/getFolderList"
         .SetRequestHeader "Accept", "application/json"
@@ -416,7 +425,7 @@ Public Function GetTopFollowMovie() As FShareTopFollowMovie
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Scripting.Dictionary
     Dim objTopFollowMovie As FShareTopFollowMovie
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", "https://api.fshare.vn/api/fileops/getTopFollowMovie"
         .SetRequestHeader "Accept", "application/json"
@@ -445,7 +454,7 @@ Public Function GetListFollow()
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Scripting.Dictionary
     Dim objListFollow As FShareListFollow
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", "https://api.fshare.vn/api/fileops/getListFollow"
         .SetRequestHeader "Accept", "application/json"
@@ -479,7 +488,7 @@ Public Sub FollowFolder(URLFolder As String)
                     Quote("link") & ": " & Quote(URLFolder) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/followFolder"
         .SetRequestHeader "Accept", "application/json"
@@ -503,7 +512,7 @@ Public Sub UnfollowFolder(URLFolder As String)
                     Quote("link") & ": " & Quote(URLFolder) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/unfollowFolder"
         .SetRequestHeader "Accept", "application/json"
@@ -523,7 +532,7 @@ Public Function ListFavorite() As FShareFileOrFolderInfo
     Dim objDict As Scripting.Dictionary
     Dim objFileOrFolderInfo As FShareFileOrFolderInfo
     Dim strRequestBody As String
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", "https://api.fshare.vn/api/fileops/listFavorite"
         .SetRequestHeader "Accept", "application/json"
@@ -572,7 +581,7 @@ Public Sub ChangeFavorite(LinkCodes As String, Optional Status As ChangeFavorite
                     Quote("status") & ": " & strStatus & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/changeFavorite"
         .SetRequestHeader "Accept", "application/json"

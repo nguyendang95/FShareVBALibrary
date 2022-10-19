@@ -31,6 +31,7 @@ Private m_WebspaceSecuredUsed As Variant
 Private m_Amount As Variant
 Private m_DownloadTimeAvailable As Long
 Private m_AccountType As String
+Private m_ActiveService As WinHttp.WinHttpRequest
 
 Public Property Let Id(value As String)
     m_Id = value
