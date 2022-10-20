@@ -462,16 +462,18 @@ Public Sub Duplicate(FileToDuplicateLinkCode As String, DestinationFolderLinkCod
     Set objDict = Nothing
 End Sub
 
-Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optional Path As String = vbNullString, Optional DirOnly As Integer = 0, Optional Limit As Integer = 100) As FShareFileOrFolderInfo
+Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optional Path As String = vbNullString, Optional DirOnly As Integer = 0, Optional Limit As Integer = 100) As FShareFileOrFolderInfos
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Object
     Dim objFileOrFolderInfo As FShareFileOrFolderInfo
+    Dim colFileOrFolderInfos As FShareFileOrFolderInfos
     Dim strRequestBody As String
+    Dim i As Long
     strRequestBody = "{ " & _
-                    Quote("pageIndex") & ": " & Quote(CStr(PageIndex)) & ", " & _
-                    Quote("dirOnly") & ": " & Quote(CStr(DirOnly)) & ", " & _
-                    Quote("limit") & ": " & Quote(CStr(Limit)) & ", " & _
-                    Quote("path") & ": " & Quote(Path) & ", " & _
+                    Quote("pageIndex") & ": " & CStr(PageIndex) & ", " & _
+                    Quote("dirOnly") & ": " & CStr(DirOnly) & ", " & _
+                    Quote("limit") & ": " & CStr(Limit) & ", " & _
+                    Quote("token") & ": " & Quote(Token) & ", " & _
                     Quote("url") & ": " & Quote(URL) & _
                     " }"
     Set objWinHTTP = ActiveService
@@ -484,30 +486,35 @@ Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optiona
         .Send strRequestBody
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
-            Set objFileOrFolderInfo = New FShareFileOrFolderInfo
-            With objFileOrFolderInfo
-                .Id = objDict.Item("id")
-                .LinkCode = objDict.Item("linkcode")
-                .Name = objDict.Item("name")
-                .Secure = objDict.Item("secure")
-                .DirectLink = objDict.Item("directlink")
-                .FileOrFolderType = objDict.Item("type")
-                .Path = objDict.Item("path")
-                .Size = CDec(objDict.Item("size"))
-                .DownloadCount = CDec(objDict.Item("downloadcount"))
-                .MimeType = objDict.Item("mimetype")
-                .Created = objDict.Item("created")
-                .PWD = objDict.Item("pwd")
-                .AllowFollow = objDict.Item("allow_follow")
-                .NumFollower = CLng(objDict.Item("num_follower"))
-            End With
-            Set GetPublicFolderList = objFileOrFolderInfo
+            Set colFileOrFolderInfos = New FShareFileOrFolderInfos
+            For i = 1 To objDict.Count
+                Set objFileOrFolderInfo = New FShareFileOrFolderInfo
+                With objFileOrFolderInfo
+                    .Id = objDict.Item(i)("id")
+                    .LinkCode = objDict.Item(i)("linkcode")
+                    .Name = objDict.Item(i)("name")
+                    .Secure = objDict.Item(i)("secure")
+                    .DirectLink = objDict.Item(i)("directlink")
+                    .FileOrFolderType = objDict.Item(i)("type")
+                    .Path = objDict.Item(i)("path")
+                    .Size = CDec(objDict.Item(i)("size"))
+                    .DownloadCount = CDec(objDict.Item(i)("downloadcount"))
+                    If IsNull(objDict.Item(i)("mimetype")) Then .MimeType = vbNullString Else .MimeType = objDict.Item(i)("mimetype")
+                    If IsNull(objDict.Item(i)("created")) Then .Created = vbNullString Else .Created = objDict.Item(i)("created")
+                    If IsNull(objDict.Item(i)("pwd")) Then .PWD = vbNullString Else .PWD = objDict.Item(i)("pwd")
+                    .AllowFollow = objDict.Item(i)("allow_follow")
+                    .NumFollower = CLng(objDict.Item(i)("num_follower"))
+                End With
+                colFileOrFolderInfos.Add objFileOrFolderInfo
+            Next
+            Set GetPublicFolderList = colFileOrFolderInfos
         Else: Err.Raise vbObjectError + 201, , .ResponseText
         End If
     End With
     Set objWinHTTP = Nothing
     Set objDict = Nothing
     Set objFileOrFolderInfo = Nothing
+    Set colFileOrFolderInfos = Nothing
 End Function
 
 Public Function GetTopFollowMovie() As FShareTopFollowMovie
