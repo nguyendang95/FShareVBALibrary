@@ -336,6 +336,7 @@ Public Sub ChangeSecure(FileLinkCodes As String, Optional Status As Integer = 0)
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/changeSecure"
+        .SetRequestHeader "Content-Type", "application/json;charset=utf-8"
         .SetRequestHeader "Accept", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
@@ -362,6 +363,7 @@ Public Sub SetDirectLink(FileLinkCodes As String, Optional Status As Integer = 0
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/setDirectLink"
         .SetRequestHeader "Accept", "application/json"
+        .SetRequestHeader "Content-Type", "application/json;charset=utf-8"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
@@ -387,6 +389,7 @@ Public Sub Duplicate(FileToDuplicateLinkCode As String, DestinationFolderLinkCod
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/duplicate"
         .SetRequestHeader "Accept", "application/json"
+        .SetRequestHeader "Content-Type", "application/json;charset=utf-8"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
@@ -414,6 +417,7 @@ Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optiona
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/getFolderList"
         .SetRequestHeader "Accept", "application/json"
+        .SetRequestHeader "Content-Type", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
@@ -518,6 +522,7 @@ Public Sub FollowFolder(URLFolder As String)
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/followFolder"
         .SetRequestHeader "Accept", "application/json"
+        .SetRequestHeader "Content-Type", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
@@ -542,6 +547,7 @@ Public Sub UnfollowFolder(URLFolder As String)
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/unfollowFolder"
         .SetRequestHeader "Accept", "application/json"
+        .SetRequestHeader "Content-Type", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
@@ -553,11 +559,13 @@ Public Sub UnfollowFolder(URLFolder As String)
     Set objDict = Nothing
 End Sub
 
-Public Function ListFavorite() As FShareFileOrFolderInfo
+Public Function ListFavorite() As FShareFileOrFolderInfos
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Object
     Dim objFileOrFolderInfo As FShareFileOrFolderInfo
+    Dim colFileOrFolderInfos As FShareFileOrFolderInfos
     Dim strRequestBody As String
+    Dim i As Long
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", "https://api.fshare.vn/api/fileops/listFavorite"
@@ -567,30 +575,35 @@ Public Function ListFavorite() As FShareFileOrFolderInfo
         .Send strRequestBody
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
-            Set objFileOrFolderInfo = New FShareFileOrFolderInfo
-            With objFileOrFolderInfo
-                .Id = objDict.Item("id")
-                .LinkCode = objDict.Item("linkcode")
-                .Name = objDict.Item("name")
-                .Secure = objDict.Item("secure")
-                .DirectLink = objDict.Item("directlink")
-                .FileOrFolderType = objDict.Item("type")
-                .Path = objDict.Item("path")
-                .Size = CDec(objDict.Item("size"))
-                .DownloadCount = CDec(objDict.Item("downloadcount"))
-                .MimeType = objDict.Item("mimetype")
-                .Created = objDict.Item("created")
-                .PWD = objDict.Item("pwd")
-                .AllowFollow = objDict.Item("allow_follow")
-                .NumFollower = CLng(objDict.Item("num_follower"))
-            End With
-            Set ListFavorite = objFileOrFolderInfo
+            Set colFileOrFolderInfos = New FShareFileOrFolderInfos
+            For i = 1 To objDict.Count
+                Set objFileOrFolderInfo = New FShareFileOrFolderInfo
+                With objFileOrFolderInfo
+                    .Id = objDict.Item(i)("id")
+                    .LinkCode = objDict.Item(i)("linkcode")
+                    .Name = objDict.Item(i)("name")
+                    .Secure = objDict.Item(i)("secure")
+                    .DirectLink = objDict.Item(i)("directlink")
+                    .FileOrFolderType = objDict.Item(i)("type")
+                    .Path = objDict.Item(i)("path")
+                    .Size = CDec(objDict.Item(i)("size"))
+                    .DownloadCount = CDec(objDict.Item(i)("downloadcount"))
+                    If IsNull(objDict.Item(i)("mimetype")) Then .MimeType = vbNullString Else .MimeType = objDict.Item(i)("mimetype")
+                    If IsNull(objDict.Item(i)("created")) Then .Created = vbNullString Else .Created = objDict.Item(i)("created")
+                    If IsNull(objDict.Item(i)("pwd")) Then .PWD = vbNullString Else .PWD = objDict.Item(i)("pwd")
+                    .AllowFollow = objDict.Item(i)("allow_follow")
+                    .NumFollower = CLng(objDict.Item(i)("num_follower"))
+                End With
+                colFileOrFolderInfos.Add objFileOrFolderInfo
+            Next
+            Set ListFavorite = colFileOrFolderInfos
         Else: Err.Raise vbObjectError + 201, , .ResponseText
         End If
     End With
     Set objWinHTTP = Nothing
     Set objDict = Nothing
     Set objFileOrFolderInfo = Nothing
+    Set colFileOrFolderInfos = Nothing
 End Function
 
 Public Sub ChangeFavorite(LinkCodes As String, Optional Status As ChangeFavoriteStatus = FavoriteDisabled)
@@ -611,6 +624,7 @@ Public Sub ChangeFavorite(LinkCodes As String, Optional Status As ChangeFavorite
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/changeFavorite"
         .SetRequestHeader "Accept", "application/json"
+        .SetRequestHeader "Content-Type", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
