@@ -14,7 +14,7 @@ Private m_Level As String
 Private m_Name As String
 Private m_Phone As String
 Private m_Birthday As String
-Private m_Gender As Integer
+Private m_Gender As String
 Private m_Address As String
 Private m_IDCard As String
 Private m_City As String
@@ -31,7 +31,52 @@ Private m_WebspaceSecuredUsed As Variant
 Private m_Amount As Variant
 Private m_DownloadTimeAvailable As Long
 Private m_AccountType As String
+Private m_Occupation As String
+Private m_JobName As String
+Private m_StatusTelesalePrepaid As String
+Private m_Country As String
+Private m_CountryName As String
 Private m_ActiveService As WinHttp.WinHttpRequest
+
+Public Property Let CountryName(value As String)
+    m_CountryName = value
+End Property
+
+Public Property Get CountryName() As String
+    CountryName = m_CountryName
+End Property
+
+Public Property Let Country(value As String)
+    m_Country = value
+End Property
+
+Public Property Get Country() As String
+    Country = m_Country
+End Property
+
+Public Property Let StatusTelesalePrepaid(value As String)
+    m_StatusTelesalePrepaid = value
+End Property
+
+Public Property Get StatusTelesalePrepaid() As String
+    StatusTelesalePrepaid = m_StatusTelesalePrepaid
+End Property
+
+Public Property Let JobName(value As String)
+    m_JobName = value
+End Property
+
+Public Property Get JobName() As String
+    JobName = m_JobName
+End Property
+
+Public Property Let Occupation(value As String)
+    m_Occupation = value
+End Property
+
+Public Property Get Occupation() As String
+    Occupation = m_Occupation
+End Property
 
 Public Property Let Id(value As String)
     m_Id = value
@@ -225,20 +270,25 @@ Public Sub ExportToTextFile(DestinationFolder As String)
         .WriteLine "Birthday: " & Birthday
         .WriteLine "Gender: " & Gender
         .WriteLine "Address: " & Address
-        .WriteLine "ID card: " & IDCard
         .WriteLine "City: " & City
+        .WriteLine "ID card: " & IDCard
         .WriteLine "E-mail: " & Email
+        .WriteLine "Occupation: " & Occupation
+        .WriteLine "Job name: " & JobName
+        .WriteLine "Country: " & Country
+        .WriteLine "Language: " & CountryName
         .WriteLine "Join date: " & JoinDate
         .WriteLine "Total points: " & CStr(TotalPoints)
         .WriteLine "Expire VIP: " & ExpireVip
-        .WriteLine "Traffic: " & CStr(Traffic)
-        .WriteLine "Traffic used: " & CStr(TrafficUsed)
-        .WriteLine "Webspace: " & Webspace
-        .WriteLine "Webspace used: " & CStr(WebspaceUsed)
-        .WriteLine "Webspace secured: " & CStr(WebspaceSecured)
-        .WriteLine "Webspace secured used: " & CStr(WebspaceSecuredUsed)
-        .WriteLine "Amount: " & CStr(Amount)
+        .WriteLine "Traffic: " & CStr(Traffic) & " GB"
+        .WriteLine "Traffic used: " & CStr(TrafficUsed) & " GB"
+        .WriteLine "Webspace: " & CStr(Webspace) & " GB"
+        .WriteLine "Webspace used: " & CStr(WebspaceUsed) & " GB"
+        .WriteLine "Webspace secured: " & CStr(WebspaceSecured) & " GB"
+        .WriteLine "Webspace secured used: " & CStr(WebspaceSecuredUsed) & " GB"
+        .WriteLine "Amount: " & CStr(Amount) & " Fxu"
         .WriteLine "Download time available: " & CStr(DownloadTimeAvailable)
+        .WriteLine "Telesale prepaid status: " & StatusTelesalePrepaid
         .Close
     End With
     Set objFSO = Nothing

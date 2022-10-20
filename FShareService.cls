@@ -174,6 +174,7 @@ Public Function GetAccountInfo() As FShareAccountInfo
             With objAccountInfo
                 .Id = objDict.Item("id")
                 .Level = objDict.Item("level")
+                .Email = objDict.Item("email")
                 .Name = objDict.Item("name")
                 .Phone = objDict.Item("phone")
                 .Birthday = objDict.Item("birthday")
@@ -184,15 +185,20 @@ Public Function GetAccountInfo() As FShareAccountInfo
                 .JoinDate = objDict.Item("joindate")
                 .TotalPoints = CLng(objDict.Item("totalpoints"))
                 .ExpireVip = objDict.Item("expiry_vip")
-                .Traffic = CDec(objDict.Item("traffic"))
-                .TrafficUsed = CDec(objDict.Item("traffic_used"))
-                .Webspace = CDec(objDict.Item("webspace"))
-                .WebspaceUsed = objDict.Item("webspace_used")
-                .WebspaceSecured = CDec(objDict.Item("webspace_secured"))
-                .WebspaceSecuredUsed = CDec(objDict.Item("webspace_secured_used"))
+                .Traffic = CDec(BytesToGigabytes(objDict.Item("traffic")))
+                .TrafficUsed = CDec(BytesToGigabytes(objDict.Item("traffic_used")))
+                .Webspace = CDec(BytesToGigabytes(objDict.Item("webspace")))
+                .WebspaceUsed = CDec(BytesToGigabytes(objDict.Item("webspace_used")))
+                .WebspaceSecured = CDec(BytesToGigabytes(objDict.Item("webspace_secure")))
+                .WebspaceSecuredUsed = CDec(BytesToGigabytes(objDict.Item("webspace_secure_used")))
                 .Amount = CDec(objDict.Item("amount"))
                 .DownloadTimeAvailable = objDict.Item("dl_time_avail")
-                .AccountType = objDict.Item("VIP")
+                .AccountType = objDict.Item("account_type")
+                .JobName = objDict.Item("job_name")
+                .Occupation = objDict.Item("occupation")
+                .Country = objDict.Item("country")
+                .CountryName = objDict.Item("country_name")
+                .StatusTelesalePrepaid = objDict.Item("status_telesale_prepaid")
             End With
             If objDict.Item("gender") = "1" Then objAccountInfo.Gender = "Male" Else objAccountInfo.Gender = "Female"
             Set GetAccountInfo = objAccountInfo
@@ -205,4 +211,8 @@ End Function
 
 Private Function Quote(Text As String) As String
     Quote = Chr(34) & Text & Chr(34)
+End Function
+
+Private Function BytesToGigabytes(Bytes As Variant) As Variant
+    BytesToGigabytes = CDec(Round(CDec(Bytes) / 1024 / 1024 / 1024, 1))
 End Function
