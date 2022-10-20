@@ -56,6 +56,67 @@ Friend Property Set ActiveService(value As WinHttp.WinHttpRequest)
     Set m_ActiveService = value
 End Property
 
+Public Sub UploadFile(FileName As String, Optional DestinationFolder As String = "/", Optional Secured As Boolean = False)
+    Dim objWinHTTP As WinHttp.WinHttpRequest
+    Dim objDict As Object
+    Dim objFSO As Scripting.FileSystemObject
+    Dim objFile As Scripting.File
+    Dim strRequestBody As String
+    Dim strSecured As String
+    If Secured = False Then strSecured = 0 Else strSecured = 1
+    Set objFSO = New Scripting.FileSystemObject
+    Set objFile = objFSO.GetFile(FileName)
+    strRequestBody = "{ " & _
+                    Quote("name") & ": " & Quote(objFile.Name) & ", " & _
+                    Quote("size") & ": " & Quote(CStr(objFile.Size)) & ", " & _
+                    Quote("path") & ": " & Quote(DestinationFolder) & ", " & _
+                    Quote("token") & ": " & Quote(Token) & ", " & _
+                    Quote("secured") & ": " & strSecured & _
+                    " }"
+    Set objWinHTTP = ActiveService
+    With objWinHTTP
+        .Open "POST", "https://api.fshare.vn/api/session/upload"
+        .SetRequestHeader "Accept", "application/json"
+        .SetRequestHeader "Content-Type", "application/json"
+        .SetRequestHeader "session_id", SessionId
+        .SetRequestHeader "User-Agent", UserAgent
+        .Send strRequestBody
+        If .Status = 200 Then
+            Set objDict = JsonConverter.ParseJson(.ResponseText)
+            Call UploadFileToURL(objDict.Item("location"), FileName)
+        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        End If
+    End With
+    Set objWinHTTP = Nothing
+    Set objDict = Nothing
+    Set objFSO = Nothing
+    Set objFile = Nothing
+End Sub
+ 
+Private Sub UploadFileToURL(URL As String, FileName As String)
+    Dim objWinHTTP As WinHttp.WinHttpRequest
+    Dim objFileStream As ADODB.Stream
+    Dim objFile As Variant
+    Set objFileStream = New ADODB.Stream
+        With objFileStream
+            .Open
+            .Type = adTypeBinary
+            .LoadFromFile FileName
+            objFile = .Read
+            .Close
+        End With
+    Set objWinHTTP = ActiveService
+    With objWinHTTP
+        .Open "POST", URL
+        .Send objFile
+        If .Status <> 200 Then
+            Err.Raise vbObjectError + 201, , .ResponseText
+        End If
+    End With
+    Set objWinHTTP = Nothing
+    Set objFileStream = Nothing
+End Sub
+
 Public Sub DownloadFile(URL As String, DestinationFolder As String, Optional Password As String = vbNullString, Optional ZipFlag As Integer = 0)
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Object
