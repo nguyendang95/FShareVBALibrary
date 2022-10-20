@@ -64,11 +64,13 @@ Public Sub DownloadFile(URL As String, DestinationFolder As String, Optional Pas
                     Quote("url") & ": " & Quote(URL) & ", " & _
                     Quote("password") & ": " & Quote(Password) & ", " & _
                     Quote("token") & ": " & Quote(Token) & ", " & _
-                    Quote("zipflag") & ": " & CStr(ZipFlag)
+                    Quote("zipflag") & ": " & CStr(ZipFlag) & _
+                    " }"
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/session/download"
         .SetRequestHeader "Accept", "application/json"
+        .SetRequestHeader "Content-Type", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
@@ -85,7 +87,7 @@ End Sub
 Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objFileStream As ADODB.Stream
-    Set objWinHTTP = New WinHttp.WinHttpRequest
+    Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", URL
         .Send
@@ -614,10 +616,6 @@ Private Function AddBulkFileOrFolderLinkCodes(LinkCodes As String) As String
         arrLinkCodes(i) = Quote(arrLinkCodes(i))
     Next
     AddBulkFileOrFolderLinkCodes = Join(arrLinkCodes, ",")
-End Function
-
-Private Function GetFileNameFromURL(URL As String) As String
-    GetFileNameFromURL = Mid(URL, InStrRev(URL, "/") + 1, Len(URL) - InStrRev(URL, "/") + 1)
 End Function
 
 Private Function Quote(Text As String) As String
