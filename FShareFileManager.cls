@@ -56,14 +56,13 @@ Friend Property Set ActiveService(value As WinHttp.WinHttpRequest)
     Set m_ActiveService = value
 End Property
 
-Public Sub DownloadFile(URL As String, Optional Password As String = vbNullString, Optional ZipFlag As Integer = 0)
+Public Sub DownloadFile(URL As String, DestinationFolder As String, Optional Password As String = vbNullString, Optional ZipFlag As Integer = 0)
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("url") & ": " & Quote(URL) & ", " & _
                     Quote("password") & ": " & Quote(Password) & ", " & _
-                    Quote("url") & ": " & Quote(URL) & ", " & _
                     Quote("token") & ": " & Quote(Token) & ", " & _
                     Quote("zipflag") & ": " & CStr(ZipFlag)
     Set objWinHTTP = ActiveService
@@ -75,7 +74,7 @@ Public Sub DownloadFile(URL As String, Optional Password As String = vbNullStrin
         .Send strRequestBody
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
-            Call DownloadFileFromURL(objDict.Item("location"))
+            Call DownloadFileFromURL(objDict.Item("location"), DestinationFolder)
         Else: Err.Raise vbObjectError + 201, , .ResponseText
         End If
     End With
@@ -83,10 +82,10 @@ Public Sub DownloadFile(URL As String, Optional Password As String = vbNullStrin
     Set objDict = Nothing
 End Sub
 
-Private Sub DownloadFileFromURL(URL As String)
+Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objFileStream As ADODB.Stream
-    Set objWinHTTP = ActiveService
+    Set objWinHTTP = New WinHttp.WinHttpRequest
     With objWinHTTP
         .Open "GET", URL
         .Send
@@ -96,7 +95,7 @@ Private Sub DownloadFileFromURL(URL As String)
                 .Open
                 .Type = adTypeBinary
                 .Write objWinHTTP.ResponseBody
-                .SaveToFile GetFileNameFromURL(URL), adSaveCreateOverWrite
+                .SaveToFile DestinationFolder & "\" & GetFileNameFromURL(URL), adSaveCreateOverWrite
                 .Close
             End With
         End If
@@ -104,6 +103,16 @@ Private Sub DownloadFileFromURL(URL As String)
     Set objWinHTTP = Nothing
     Set objFileStream = Nothing
 End Sub
+
+Private Function GetFileNameFromURL(URL As String) As String
+    Dim strResult As String
+    strResult = Mid(URL, InStrRev(URL, "/") + 1, Len(URL) - InStrRev(URL, "/") + 1)
+    strResult = Replace(strResult, "%20", " ")
+    strResult = Replace(strResult, "%22", Chr(34))
+    strResult = Replace(strResult, "%27", Chr(39))
+    strResult = Replace(strResult, "%25", "%")
+    GetFileNameFromURL = strResult
+End Function
 
 Public Function GetUsersFileOrFolderList(PageIndex As Integer, Ext As String, Optional Path As String = vbNullString, Optional DirOnly As FileOrFolder = FileAndFolder, Optional Limit As Integer = 100) As FShareFileOrFolderInfo
     Dim objWinHTTP As WinHttp.WinHttpRequest
