@@ -26,8 +26,8 @@ Private m_Traffic As Variant
 Private m_TrafficUsed As Variant
 Private m_Webspace As Variant
 Private m_WebspaceUsed As Variant
-Private m_WebspaceSecured As Variant
-Private m_WebspaceSecuredUsed As Variant
+Private m_WebspaceSecure As Variant
+Private m_WebspaceSecureUsed As Variant
 Private m_Amount As Variant
 Private m_DownloadTimeAvailable As Long
 Private m_AccountType As String
@@ -206,20 +206,20 @@ Public Property Get Webspace() As Variant
     Webspace = m_Webspace
 End Property
 
-Public Property Let WebspaceSecured(value As Variant)
-    m_WebspaceSecured = value
+Public Property Let WebspaceSecure(value As Variant)
+    m_WebspaceSecure = value
 End Property
 
-Public Property Get WebspaceSecured() As Variant
-    WebspaceSecured = m_WebspaceSecured
+Public Property Get WebspaceSecure() As Variant
+    WebspaceSecure = m_WebspaceSecure
 End Property
 
-Public Property Let WebspaceSecuredUsed(value As Variant)
-    m_WebspaceSecuredUsed = value
+Public Property Let WebspaceSecureUsed(value As Variant)
+    m_WebspaceSecureUsed = value
 End Property
 
-Public Property Get WebspaceSecuredUsed() As Variant
-    WebspaceSecuredUsed = m_WebspaceSecuredUsed
+Public Property Get WebspaceSecureUsed() As Variant
+    WebspaceSecureUsed = m_WebspaceSecureUsed
 End Property
 
 Public Property Let Amount(value As Variant)
@@ -284,8 +284,8 @@ Public Sub ExportToTextFile(DestinationFolder As String)
         .WriteLine "Traffic used: " & CStr(TrafficUsed) & " GB"
         .WriteLine "Webspace: " & CStr(Webspace) & " GB"
         .WriteLine "Webspace used: " & CStr(WebspaceUsed) & " GB"
-        .WriteLine "Webspace secured: " & CStr(WebspaceSecured) & " GB"
-        .WriteLine "Webspace secured used: " & CStr(WebspaceSecuredUsed) & " GB"
+        .WriteLine "Webspace secure: " & CStr(WebspaceSecure) & " GB"
+        .WriteLine "Webspace secure used: " & CStr(WebspaceSecureUsed) & " GB"
         .WriteLine "Amount: " & CStr(Amount) & " Fxu"
         .WriteLine "Download time available: " & CStr(DownloadTimeAvailable)
         .WriteLine "Telesale prepaid status: " & StatusTelesalePrepaid
