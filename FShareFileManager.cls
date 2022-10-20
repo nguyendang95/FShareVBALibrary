@@ -116,43 +116,51 @@ Private Function GetFileNameFromURL(URL As String) As String
     GetFileNameFromURL = strResult
 End Function
 
-Public Function GetUsersFileOrFolderList(PageIndex As Integer, Ext As String, Optional Path As String = vbNullString, Optional DirOnly As FileOrFolder = FileAndFolder, Optional Limit As Integer = 100) As FShareFileOrFolderInfo
+Public Function GetUsersFileOrFolderList(PageIndex As Integer, Ext As String, Optional Path As String = vbNullString, Optional DirOnly As FileOrFolder = FileAndFolder, Optional Limit As Integer = 100) As FShareFileOrFolderInfos
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Object
     Dim objFileOrFolderInfo As FShareFileOrFolderInfo
+    Dim colFileOrFolderInfos As FShareFileOrFolderInfos
+    Dim i As Long
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", "https://api.fshare.vn/api/fileops/list?ext=" & Ext & "?path=" & Path & "?dirOnly=" & CStr(DirOnly) & "?limit=" & CStr(Limit)
+        .SetRequestHeader "Content-Type", "application/json"
         .SetRequestHeader "Accept", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
-            Set objFileOrFolderInfo = New FShareFileOrFolderInfo
-            With objFileOrFolderInfo
-                .Id = objDict.Item("id")
-                .LinkCode = objDict.Item("linkcode")
-                .Name = objDict.Item("name")
-                .Secure = objDict.Item("secure")
-                .DirectLink = objDict.Item("directlink")
-                .FileOrFolderType = objDict.Item("type")
-                .Path = objDict.Item("path")
-                .Size = CDec(objDict.Item("size"))
-                .DownloadCount = CDec(objDict.Item("downloadcount"))
-                .MimeType = objDict.Item("mimetype")
-                .Created = objDict.Item("created")
-                .PWD = objDict.Item("pwd")
-                .AllowFollow = objDict.Item("allow_follow")
-                .NumFollower = CLng(objDict.Item("num_follower"))
-            End With
-            Set GetUsersFileOrFolderList = objFileOrFolderInfo
+            Set colFileOrFolderInfos = New FShareFileOrFolderInfos
+            For i = 1 To objDict.Count
+                Set objFileOrFolderInfo = New FShareFileOrFolderInfo
+                With objFileOrFolderInfo
+                    .Id = objDict.Item(i)("id")
+                    .LinkCode = objDict.Item(i)("linkcode")
+                    .Name = objDict.Item(i)("name")
+                    .Secure = objDict.Item(i)("secure")
+                    .DirectLink = objDict.Item(i)("directlink")
+                    .FileOrFolderType = objDict.Item(i)("type")
+                    .Path = objDict.Item(i)("path")
+                    .Size = CDec(objDict.Item(i)("size"))
+                    .DownloadCount = CDec(objDict.Item(i)("downloadcount"))
+                    If IsNull(objDict.Item(i)("mimetype")) Then .MimeType = vbNullString Else .MimeType = objDict.Item(i)("mimetype")
+                    If IsNull(objDict.Item(i)("created")) Then .Created = vbNullString Else .Created = objDict.Item(i)("created")
+                    If IsNull(objDict.Item(i)("pwd")) Then .PWD = vbNullString Else .PWD = objDict.Item(i)("pwd")
+                    .AllowFollow = objDict.Item(i)("allow_follow")
+                    .NumFollower = CLng(objDict.Item(i)("num_follower"))
+                End With
+                colFileOrFolderInfos.Add objFileOrFolderInfo
+            Next
+            Set GetUsersFileOrFolderList = colFileOrFolderInfos
         Else: Err.Raise vbObjectError + 201, , .ResponseText
         End If
     End With
     Set objWinHTTP = Nothing
     Set objDict = Nothing
     Set objFileOrFolderInfo = Nothing
+    Set colFileOrFolderInfos = Nothing
 End Function
 
 Public Function GetTotalFileInFolder(FolderURL As String, Optional HaveFile As Boolean = False) As Long
@@ -172,6 +180,7 @@ Public Function GetTotalFileInFolder(FolderURL As String, Optional HaveFile As B
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/getTotalFileInFolder"
+        .SetRequestHeader "Content-Type", "application/json"
         .SetRequestHeader "Accept", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
@@ -191,13 +200,14 @@ Public Function CreateFolder(FolderName As String, Optional InDir As String = "0
     Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
-                    Quote("name") & ":" & Quote(FolderName) & "," & _
-                    Quote("token") & ":" & Quote(Token) & "," & _
-                    Quote("in_dir") & ":" & Quote(InDir) & _
-                    " }"
+                        Quote("name") & ": " & Quote(FolderName) & ", " & _
+                        Quote("token") & ": " & Quote(Token) & ", " & _
+                        Quote("in_dir") & ": " & Quote(InDir) & _
+                        " }"
     Set objWinHTTP = ActiveService
     With objWinHTTP
-        .Open "POST", "https://api.fshare.vn/api/fileops/createfolder"
+        .Open "POST", "https://api.fshare.vn/api/fileops/createFolder"
+        .SetRequestHeader "Content-Type", "application/json;charset=utf-8"
         .SetRequestHeader "Accept", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
@@ -224,6 +234,7 @@ Public Sub RenameFileOrFolder(NewName As String, LinkCode As String)
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/rename"
+        .SetRequestHeader "Content-Type", "application/json;charset=utf-8"
         .SetRequestHeader "Accept", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
