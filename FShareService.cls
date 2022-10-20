@@ -123,7 +123,7 @@ Public Function Login() As FShareFileManager
             End With
         ElseIf .Status <> 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
-            Err.Raise vbObjectError + CInt(objDict.Item("code")), , objDict.Item("msg")
+            Err.Raise vbObjectError + .Status, , objDict.Item("msg")
         End If
     End With
     Set Login = objFileManager
@@ -143,7 +143,7 @@ Public Sub LogOut()
         .SetRequestHeader "Accept", "application/json"
         .Send
         If .Status = 201 Then
-            Err.Raise vbObjectError + 201, , "Not logged in yet!"
+            Err.Raise vbObjectError + .Status, , objDict.Item("msg")
         ElseIf .Status = 200 Then
             LoggedIn = False
             LoggedOut = True
@@ -202,7 +202,7 @@ Public Function GetAccountInfo() As FShareAccountInfo
             End With
             If objDict.Item("gender") = "1" Then objAccountInfo.Gender = "Male" Else objAccountInfo.Gender = "Female"
             Set GetAccountInfo = objAccountInfo
-            Else: Err.Raise vbObjectError + 201, , .ResponseText
+            Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing

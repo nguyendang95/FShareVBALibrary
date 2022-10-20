@@ -84,7 +84,7 @@ Public Sub UploadFile(FileName As String, Optional DestinationFolder As String =
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             Call UploadFileToURL(objDict.Item("location"), FileName)
-        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -96,7 +96,7 @@ End Sub
 Private Sub UploadFileToURL(URL As String, FileName As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objFileStream As ADODB.Stream
-    Dim objFile As Variant
+    Dim objFile() As Byte
     Set objFileStream = New ADODB.Stream
         With objFileStream
             .Open
@@ -110,7 +110,7 @@ Private Sub UploadFileToURL(URL As String, FileName As String)
         .Open "POST", URL
         .Send objFile
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 201, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -138,7 +138,7 @@ Public Sub DownloadFile(URL As String, DestinationFolder As String, Optional Pas
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             Call DownloadFileFromURL(objDict.Item("location"), DestinationFolder)
-        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -215,7 +215,7 @@ Public Function GetUsersFileOrFolderList(PageIndex As Integer, Ext As String, Op
                 colFileOrFolderInfos.Add objFileOrFolderInfo
             Next
             Set GetUsersFileOrFolderList = colFileOrFolderInfos
-        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -249,7 +249,7 @@ Public Function GetTotalFileInFolder(FolderURL As String, Optional HaveFile As B
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             GetTotalFileInFolder = objDict.Item("total")
-        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -276,7 +276,7 @@ Public Function CreateFolder(FolderName As String, Optional InDir As String = "0
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             CreateFolder = objDict.Item("folder")("linkcode")
-        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -301,7 +301,7 @@ Public Sub RenameFileOrFolder(NewName As String, LinkCode As String)
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 201, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -326,7 +326,7 @@ Public Sub MoveFileOrFolder(FileOrFolderLinkCodes As String, Optional Destinatio
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 201, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -351,7 +351,7 @@ Public Sub DeleteFileOrFolder(FileOrFolderLinkCodes As String)
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 201, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -377,7 +377,7 @@ Public Sub CreateFilePass(FileLinkCodes As String, Optional Password As String =
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 201, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -403,7 +403,7 @@ Public Sub ChangeSecure(FileLinkCodes As String, Optional Status As Integer = 0)
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 201, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -429,7 +429,7 @@ Public Sub SetDirectLink(FileLinkCodes As String, Optional Status As Integer = 0
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 201, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -455,7 +455,7 @@ Public Sub Duplicate(FileToDuplicateLinkCode As String, DestinationFolderLinkCod
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 201, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -508,7 +508,7 @@ Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optiona
                 colFileOrFolderInfos.Add objFileOrFolderInfo
             Next
             Set GetPublicFolderList = colFileOrFolderInfos
-        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -538,7 +538,7 @@ Public Function GetTopFollowMovie() As FShareTopFollowMovie
                 .Followers = objDict.Item("followers")
             End With
             Set GetTopFollowMovie = objTopFollowMovie
-        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -569,7 +569,7 @@ Public Function GetListFollow() As FShareListFollow
             End With
             Set GetListFollow = objListFollow
         ElseIf .Status <> 200 Then
-            Err.Raise vbObjectError + 201, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         Else: Set GetListFollow = Nothing
         End If
     End With
@@ -596,7 +596,7 @@ Public Sub FollowFolder(URLFolder As String)
         .Send strRequestBody
         If .Status = 409 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
-            Err.Raise vbObjectError + 409, , objDict.Item("msg")
+            Err.Raise vbObjectError + .Status, , objDict.Item("msg")
         End If
     End With
     Set objWinHTTP = Nothing
@@ -620,7 +620,7 @@ Public Sub UnfollowFolder(URLFolder As String)
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 409, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -665,7 +665,7 @@ Public Function ListFavorite() As FShareFileOrFolderInfos
                 colFileOrFolderInfos.Add objFileOrFolderInfo
             Next
             Set ListFavorite = colFileOrFolderInfos
-        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
@@ -697,7 +697,7 @@ Public Sub ChangeFavorite(LinkCodes As String, Optional Status As ChangeFavorite
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status <> 200 Then
-            Err.Raise vbObjectError + 409, , .ResponseText
+            Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
