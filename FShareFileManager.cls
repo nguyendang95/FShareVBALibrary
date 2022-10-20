@@ -253,7 +253,7 @@ Public Sub MoveFileOrFolder(FileOrFolderLinkCodes As String, Optional Destinatio
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (FileOrFolderLinkCodes) & " ] " & _
+                    AddBulkFileOrFolderLinkCodes (FileOrFolderLinkCodes) & " ], " & _
                     Quote("token") & ": " & Quote(Token) & ", " & _
                     Quote("to") & ": " & Quote(DestinationFileOrFolderLinkCode) & _
                     " }"
@@ -277,13 +277,14 @@ Public Sub DeleteFileOrFolder(FileOrFolderLinkCodes As String)
     Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
-                    Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (FileOrFolderLinkCodes) & " ] " & _
+                    Quote("items") & ": " & "[ " & _
+                    AddBulkFileOrFolderLinkCodes(FileOrFolderLinkCodes) & " ], " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/delete"
+        .SetRequestHeader "Content-Type", "application/json;charset=utf-8"
         .SetRequestHeader "Accept", "application/json"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
@@ -302,7 +303,7 @@ Public Sub CreateFilePass(FileLinkCodes As String, Optional Password As String =
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (FileLinkCodes) & " ] " & _
+                    AddBulkFileOrFolderLinkCodes (FileLinkCodes) & " ], " & _
                     Quote("pass") & ": " & Quote(Password) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
@@ -310,6 +311,7 @@ Public Sub CreateFilePass(FileLinkCodes As String, Optional Password As String =
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/fileops/createFilePass"
         .SetRequestHeader "Accept", "application/json"
+        .SetRequestHeader "Content-Type", "application/json;charset=utf-8"
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
@@ -327,7 +329,7 @@ Public Sub ChangeSecure(FileLinkCodes As String, Optional Status As Integer = 0)
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (FileLinkCodes) & " ] " & _
+                    AddBulkFileOrFolderLinkCodes (FileLinkCodes) & " ], " & _
                     Quote("status") & ": " & CStr(Status) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
@@ -352,7 +354,7 @@ Public Sub SetDirectLink(FileLinkCodes As String, Optional Status As Integer = 0
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (FileLinkCodes) & " ] " & _
+                    AddBulkFileOrFolderLinkCodes (FileLinkCodes) & " ], " & _
                     Quote("status") & ": " & CStr(Status) & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
@@ -601,7 +603,7 @@ Public Sub ChangeFavorite(LinkCodes As String, Optional Status As ChangeFavorite
     End Select
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
-                    AddBulkFileOrFolderLinkCodes (LinkCodes) & " ] " & _
+                    AddBulkFileOrFolderLinkCodes (LinkCodes) & " ], " & _
                     Quote("status") & ": " & strStatus & ", " & _
                     Quote("token") & ": " & Quote(Token) & _
                     " }"
