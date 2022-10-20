@@ -48,17 +48,17 @@ Public Property Get Token() As String
     Token = m_Token
 End Property
 
-Public Property Get ActiveService() As WinHttp.WinHttpRequest
+Friend Property Get ActiveService() As WinHttp.WinHttpRequest
     Set ActiveService = m_ActiveService
 End Property
 
-Public Property Set ActiveService(value As WinHttp.WinHttpRequest)
+Friend Property Set ActiveService(value As WinHttp.WinHttpRequest)
     Set m_ActiveService = value
 End Property
 
 Public Sub DownloadFile(URL As String, Optional Password As String = vbNullString, Optional ZipFlag As Integer = 0)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("url") & ": " & Quote(URL) & ", " & _
@@ -107,7 +107,7 @@ End Sub
 
 Public Function GetUsersFileOrFolderList(PageIndex As Integer, Ext As String, Optional Path As String = vbNullString, Optional DirOnly As FileOrFolder = FileAndFolder, Optional Limit As Integer = 100) As FShareFileOrFolderInfo
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim objFileOrFolderInfo As FShareFileOrFolderInfo
     Set objWinHTTP = ActiveService
     With objWinHTTP
@@ -146,7 +146,7 @@ End Function
 
 Public Function GetTotalFileInFolder(FolderURL As String, Optional HaveFile As Boolean = False) As Long
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     Dim strHaveFile As String
     If HaveFile Then
@@ -177,7 +177,7 @@ End Function
 
 Public Function CreateFolder(FolderName As String, Optional InDir As String = "0") As String
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("name") & ":" & Quote(FolderName) & "," & _
@@ -203,7 +203,7 @@ End Function
 
 Public Sub RenameFileOrFolder(NewName As String, LinkCode As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("new_name") & ": " & Quote(NewName) & ", " & _
@@ -227,7 +227,7 @@ End Sub
 
 Public Sub MoveFileOrFolder(FileOrFolderLinkCodes As String, Optional DestinationFileOrFolderLinkCode As String = "0", Optional InDir As String = "0")
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
@@ -252,7 +252,7 @@ End Sub
 
 Public Sub DeleteFileOrFolder(FileOrFolderLinkCodes As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
@@ -276,7 +276,7 @@ End Sub
 
 Public Sub CreateFilePass(FileLinkCodes As String, Optional Password As String = vbNullString)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
@@ -301,7 +301,7 @@ End Sub
 
 Public Sub ChangeSecure(FileLinkCodes As String, Optional Status As Integer = 0)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
@@ -326,7 +326,7 @@ End Sub
 
 Public Sub SetDirectLink(FileLinkCodes As String, Optional Status As Integer = 0)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("items") & ": " & "[ "
@@ -351,7 +351,7 @@ End Sub
 
 Public Sub Duplicate(FileToDuplicateLinkCode As String, DestinationFolderLinkCode As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("linkcode") & ": " & Quote(FileToDuplicateLinkCode) & ", " & _
@@ -376,7 +376,7 @@ End Sub
 
 Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optional Path As String = vbNullString, Optional DirOnly As Integer = 0, Optional Limit As Integer = 100) As FShareFileOrFolderInfo
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim objFileOrFolderInfo As FShareFileOrFolderInfo
     Dim strRequestBody As String
     strRequestBody = "{ " & _
@@ -423,7 +423,7 @@ End Function
 
 Public Function GetTopFollowMovie() As FShareTopFollowMovie
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim objTopFollowMovie As FShareTopFollowMovie
     Set objWinHTTP = ActiveService
     With objWinHTTP
@@ -450,9 +450,9 @@ Public Function GetTopFollowMovie() As FShareTopFollowMovie
     Set objTopFollowMovie = Nothing
 End Function
 
-Public Function GetListFollow()
+Public Function GetListFollow() As FShareListFollow
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim objListFollow As FShareListFollow
     Set objWinHTTP = ActiveService
     With objWinHTTP
@@ -461,7 +461,7 @@ Public Function GetListFollow()
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "User-Agent", UserAgent
         .Send
-        If .Status = 200 Then
+        If .Status = 200 And .ResponseText <> "[]" Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             Set objListFollow = New FShareListFollow
             With objListFollow
@@ -472,7 +472,9 @@ Public Function GetListFollow()
                 .CreateTime = objDict.Item("create_time")
             End With
             Set GetListFollow = objListFollow
-        Else: Err.Raise vbObjectError + 201, , .ResponseText
+        ElseIf .Status <> 200 Then
+            Err.Raise vbObjectError + 201, , .ResponseText
+        Else: Set GetListFollow = Nothing
         End If
     End With
     Set objWinHTTP = Nothing
@@ -482,7 +484,7 @@ End Function
 
 Public Sub FollowFolder(URLFolder As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("link") & ": " & Quote(URLFolder) & ", " & _
@@ -506,7 +508,7 @@ End Sub
 
 Public Sub UnfollowFolder(URLFolder As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim strRequestBody As String
     strRequestBody = "{ " & _
                     Quote("link") & ": " & Quote(URLFolder) & ", " & _
@@ -529,7 +531,7 @@ End Sub
 
 Public Function ListFavorite() As FShareFileOrFolderInfo
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objDict As Scripting.Dictionary
+    Dim objDict As Object
     Dim objFileOrFolderInfo As FShareFileOrFolderInfo
     Dim strRequestBody As String
     Set objWinHTTP = ActiveService

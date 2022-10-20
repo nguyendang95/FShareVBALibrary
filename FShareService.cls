@@ -83,11 +83,11 @@ Public Property Get LoggedOut() As Boolean
     LoggedOut = m_LoggedOut
 End Property
 
-Public Property Get ActiveService() As WinHttp.WinHttpRequest
+Private Property Get ActiveService() As WinHttp.WinHttpRequest
     Set ActiveService = m_ActiveService
 End Property
 
-Public Property Set ActiveService(value As WinHttp.WinHttpRequest)
+Private Property Set ActiveService(value As WinHttp.WinHttpRequest)
     Set m_ActiveService = value
 End Property
 
@@ -110,6 +110,7 @@ Public Function Login() As FShareFileManager
         If .Status = 200 Then
             Set ActiveService = objWinHTTP
             LoggedIn = True
+            LoggedOut = False
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             Token = objDict.Item("token")
             SessionId = objDict.Item("session_id")
@@ -120,7 +121,6 @@ Public Function Login() As FShareFileManager
                 .Token = objDict.Item("token")
                 Set .ActiveService = ActiveService
             End With
-            Set ActiveService = objWinHTTP
         ElseIf .Status <> 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             Err.Raise vbObjectError + CInt(objDict.Item("code")), , objDict.Item("msg")
@@ -145,6 +145,7 @@ Public Sub LogOut()
         If .Status = 201 Then
             Err.Raise vbObjectError + 201, , "Not logged in yet!"
         ElseIf .Status = 200 Then
+            LoggedIn = False
             LoggedOut = True
             Token = vbNullString
             SessionId = vbNullString
@@ -155,7 +156,7 @@ Public Sub LogOut()
     Set objDict = Nothing
 End Sub
 
-Public Function UserInfo() As FShareAccountInfo
+Public Function GetAccountInfo() As FShareAccountInfo
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Scripting.Dictionary
     Dim objAccountInfo As FShareAccountInfo
@@ -176,7 +177,6 @@ Public Function UserInfo() As FShareAccountInfo
                 .Name = objDict.Item("name")
                 .Phone = objDict.Item("phone")
                 .Birthday = objDict.Item("birthday")
-                .Gender = objDict.Item("gender")
                 .Address = objDict.Item("address")
                 .IDCard = objDict.Item("id_card")
                 .City = objDict.Item("city")
@@ -194,7 +194,8 @@ Public Function UserInfo() As FShareAccountInfo
                 .DownloadTimeAvailable = objDict.Item("dl_time_avail")
                 .AccountType = objDict.Item("VIP")
             End With
-            Set UserInfo = objAccountInfo
+            If objDict.Item("gender") = "1" Then objAccountInfo.Gender = "Male" Else objAccountInfo.Gender = "Female"
+            Set GetAccountInfo = objAccountInfo
             Else: Err.Raise vbObjectError + 201, , .ResponseText
         End If
     End With
