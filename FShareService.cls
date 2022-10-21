@@ -19,6 +19,11 @@ Private m_LoggedIn As Boolean
 Private m_LoggedOut As Boolean
 Private m_ActiveService As WinHttp.WinHttpRequest
 
+Public Enum CredentialType
+    UserInput = 0
+    TextFile = 1
+End Enum
+
 Public Property Let UserEmail(value As String)
     m_UserEmail = value
 End Property
@@ -91,11 +96,37 @@ Private Property Set ActiveService(value As WinHttp.WinHttpRequest)
     Set m_ActiveService = value
 End Property
 
-Public Function Login() As FShareFileManager
+Public Function Login(Optional CredentialType As CredentialType = UserInput, Optional CredentialFile As String = vbNullString) As FShareFileManager
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Scripting.Dictionary
     Dim objFileManager As FShareFileManager
     Dim strRequestBody As String
+    Dim strUserEmail As String
+    Dim strPassword As String
+    Dim strAppKey As String
+    Dim strUserAgent As String
+    Dim objFSO As Scripting.FileSystemObject
+    Dim objTextStream As Scripting.TextStream
+    If CredentialType = TextFile Then
+        Set objFSO = New Scripting.FileSystemObject
+        Set objTextStream = objFSO.OpenTextFile(CredentialFile)
+        With objTextStream
+            strUserEmail = .ReadLine
+            strPassword = .ReadLine
+            strAppKey = .ReadLine
+            strUserAgent = .ReadLine
+            .Close
+        End With
+        UserEmail = strUserEmail
+        Password = strPassword
+        AppKey = strAppKey
+        UserAgent = strUserAgent
+    Else
+        strUserEmail = UserEmail
+        strPassword = Password
+        strAppKey = AppKey
+        strUserAgent = UserAgent
+    End If
     strRequestBody = "{ " & _
                 Quote("user_email") & ": " & Quote(UserEmail) & ", " & _
                 Quote("password") & ": " & Quote(Password) & ", " & _
@@ -130,6 +161,8 @@ Public Function Login() As FShareFileManager
     Set objWinHTTP = Nothing
     Set objDict = Nothing
     Set objFileManager = Nothing
+    Set objFSO = Nothing
+    Set objTextStream = Nothing
 End Function
 
 Public Sub LogOut()

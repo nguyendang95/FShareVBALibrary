@@ -293,9 +293,9 @@ Public Function GetTotalFileInFolder(FolderURL As String, Optional HaveFile As B
     Else: strHaveFile = "false"
     End If
     strRequestBody = "{ " & _
-                    Quote("token") & ": " & Quote(Token) & ", " & _
-                    Quote("url") & ": " & Quote(FolderURL) & ", " & _
-                    Quote("have_file") & ": " & Quote(strHaveFile) & _
+                    Quote("token") & ":" & Quote(Token) & "," & _
+                    Quote("url") & ":" & Quote(FolderURL) & "," & _
+                    Quote("have_file") & ":" & strHaveFile & _
                     " }"
     Set objWinHTTP = ActiveService
     With objWinHTTP
@@ -306,8 +306,11 @@ Public Function GetTotalFileInFolder(FolderURL As String, Optional HaveFile As B
         .SetRequestHeader "User-Agent", UserAgent
         .Send strRequestBody
         If .Status = 200 Then
-            Set objDict = JsonConverter.ParseJson(.ResponseText)
-            GetTotalFileInFolder = objDict.Item("total")
+            If .ResponseText <> vbNullString Then
+                Set objDict = JsonConverter.ParseJson(.ResponseText)
+                GetTotalFileInFolder = objDict.Item("total")
+            Else: GetTotalFileInFolder = 0
+            End If
         Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
