@@ -84,6 +84,7 @@ Public Sub UploadFile(FileName As String, Optional DestinationFolder As String =
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
             Call UploadFileToURL(objDict.Item("location"), FileName)
+        ElseIf .Status = 201 Then Err.Raise vbObjectError + .Status, , "Not logged in yet!"
         Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
@@ -107,8 +108,11 @@ Private Sub UploadFileToURL(URL As String, FileName As String)
         End With
     Set objWinHTTP = ActiveService
     With objWinHTTP
-        .Open "POST", URL
+        .Open "POST", URL, True
+        .SetRequestHeader "session_id", SessionId
+        .SetRequestHeader "User-Agent", UserAgent
         .Send objFile
+        .WaitForResponse
         If .Status <> 200 Then
             Err.Raise vbObjectError + .Status, , .StatusText
         End If
