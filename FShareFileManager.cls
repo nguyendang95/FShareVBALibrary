@@ -195,7 +195,7 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
             Set objStream = New ADODB.Stream
             objStream.Open
             objStream.Type = adTypeBinary
-            objStream.Write objWin.ResponseBody
+            objStream.Write objWinHTTP.ResponseBody
             Set objWinHTTP = Nothing
             If blnFirstLoop Then
                 objStream.SaveToFile strFile
@@ -217,7 +217,7 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
             If decCurrentEndByte > decTotalSize Then decCurrentEndByte = decTotalSize
         Loop
         objTempFile.Delete
-    Else: Err.Raise vbObjectError + .Status, , "Not logged in yet!"
+    Else: Err.Raise vbObjectError + objWinHTTP.Status, , "Not logged in yet!"
     End If
     Set objWinHTTP = Nothing
     Set objFSO = Nothing
