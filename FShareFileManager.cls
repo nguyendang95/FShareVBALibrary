@@ -151,16 +151,18 @@ End Sub
 
 Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objFirstStream As ADODB.Stream, objSecondStream As ADODB.Stream
+    Dim objFSO As Scripting.FileSystemObject, objFile As Scripting.File, objTempFile As Scripting.File, objTextStream As Scripting.TextStream
+    Dim objStream As ADODB.Stream
     Dim decTotalSize As Variant
-    Dim decCurrentEndByte As Variant, decChunkSize As Variant, decCurrentStartByte
-    Dim blnFirstLoop As Boolean
+    Dim decCurrentEndByte As Variant, decChunkSize As Variant, decCurrentStartByte As Variant
     Dim strFile As String
+    Dim blnFirstLoop As Boolean
     strFile = DestinationFolder & "\" & GetFileNameFromURL(URL)
-    blnFirstLoop = True
     decCurrentStartByte = CDec(decCurrentStartByte)
     decChunkSize = CDec(decChunkSize)
     decChunkSize = 256000000
+    blnFirstLoop = True
+    Set objFSO = New Scripting.FileSystemObject
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "HEAD", URL, True
@@ -168,51 +170,60 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
         .SetRequestHeader "User-Agent", UserAgent
         .Send
         .WaitForResponse
-        If .Status = 200 Then
-            decTotalSize = CDec(.GetResponseHeader("Content-Length"))
-            Set objWinHTTP = Nothing
-            decCurrentEndByte = CDec(decCurrentEndByte)
-            decCurrentStartByte = 0
-            If decTotalSize < decChunkSize Then
-                decCurrentEndByte = decTotalSize
-            Else: decCurrentEndByte = decChunkSize
-            End If
-            Set objFirstStream = New ADODB.Stream
-            objFirstStream.Open
-            objFirstStream.Type = adTypeBinary
-            Do While decCurrentEndByte > decCurrentStartByte
-                Set objSecondStream = New ADODB.Stream
-                objSecondStream.Open
-                objSecondStream.Type = adTypeBinary
-                If blnFirstLoop = False Then
-                    objSecondStream.LoadFromFile strFile
-                    objFirstStream.Write objSecondStream.Read
-                End If
-                Set objWinHTTP = ActiveService
-                With objWinHTTP
-                    .Open "GET", URL, True
-                    .SetRequestHeader "session_id", SessionId
-                    .SetRequestHeader "User-Agent", UserAgent
-                    .SetRequestHeader "Range", "bytes=" & CStr(decCurrentStartByte) & "-" & CStr(decCurrentEndByte)
-                    .Send
-                    .WaitForResponse
-                    objFirstStream.Write .ResponseBody
-                    objFirstStream.SaveToFile strFile, IIf(adSaveCreateNotExist, adSaveCreateOverWrite, adSaveCreateNotExist)
-                    decCurrentStartByte = decCurrentStartByte + decChunkSize + 1
-                    decCurrentEndByte = decCurrentEndByte + decChunkSize + 1
-                    If decCurrentEndByte > decTotalSize Then decCurrentEndByte = decTotalSize
-                    blnFirstLoop = False
-                    objSecondStream.Close
-                    Set objSecondStream = Nothing
-                    Set objWinHTTP = Nothing
-                End With
-            Loop
-            objFirstStream.Close
-        Else: Err.Raise vbObjectError + .Status, , "Not logged in yet!"
-        End If
     End With
+    If objWinHTTP.Status = 200 Then
+        decTotalSize = CDec(objWinHTTP.GetResponseHeader("Content-Length"))
+        Set objWinHTTP = Nothing
+        decCurrentEndByte = CDec(decCurrentEndByte)
+        decCurrentEndByte = 0
+        decCurrentStartByte = 0
+        If decTotalSize < decChunkSize Then
+            decCurrentEndByte = decTotalSize
+        Else: decCurrentEndByte = decChunkSize
+        End If
+        Do While decCurrentEndByte > decCurrentStartByte
+            Set objWinHTTP = ActiveService
+            With objWinHTTP
+                .Open "GET", URL, True
+                .SetRequestHeader "session_id", SessionId
+                .SetRequestHeader "User-Agent", UserAgent
+                .SetRequestHeader "Content-Type", "application/octet-stream"
+                .SetRequestHeader "Range", "bytes=" & CStr(decCurrentStartByte) & "-" & CStr(decCurrentEndByte)
+                .Send
+                .WaitForResponse
+            End With
+            Set objStream = New ADODB.Stream
+            objStream.Open
+            objStream.Type = adTypeBinary
+            objStream.Write objWin.ResponseBody
+            Set objWinHTTP = Nothing
+            If blnFirstLoop Then
+                objStream.SaveToFile strFile
+                blnFirstLoop = False
+                objStream.Close
+            Else
+                blnFirstLoop = False
+                objStream.SaveToFile strFile & ".tmp", adSaveCreateOverWrite
+                objStream.Close
+                Set objTempFile = objFSO.GetFile(strFile & ".tmp")
+                Set objFile = objFSO.GetFile(strFile)
+                Set objTextStream = objFile.OpenAsTextStream(ForAppending, TristateFalse)
+                objTextStream.Write objTempFile.OpenAsTextStream().Read(objTempFile.Size)
+                objTextStream.Close
+            End If
+            Set objStream = Nothing
+            decCurrentStartByte = decCurrentStartByte + decChunkSize + 1
+            decCurrentEndByte = decCurrentEndByte + decChunkSize + 1
+            If decCurrentEndByte > decTotalSize Then decCurrentEndByte = decTotalSize
+        Loop
+        objTempFile.Delete
+    Else: Err.Raise vbObjectError + .Status, , "Not logged in yet!"
+    End If
     Set objWinHTTP = Nothing
-    Set objFirstStream = Nothing
+    Set objFSO = Nothing
+    Set objFile = Nothing
+    Set objTextStream = Nothing
+    Set objTempFile = Nothing
 End Sub
 
 Private Function GetFileNameFromURL(URL As String) As String
