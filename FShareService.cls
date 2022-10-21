@@ -142,15 +142,10 @@ Public Sub LogOut()
         .SetRequestHeader "session_id", SessionId
         .SetRequestHeader "Accept", "application/json"
         .Send
-        If .Status = 201 Then
-            Err.Raise vbObjectError + .Status, , objDict.Item("msg")
-        ElseIf .Status = 200 Then
-            LoggedIn = False
-            LoggedOut = True
-            Token = vbNullString
-            SessionId = vbNullString
-            Set ActiveService = Nothing
-        End If
+        LoggedIn = False
+        LoggedOut = True
+        Token = vbNullString
+        SessionId = vbNullString
     End With
     Set objWinHTTP = Nothing
     Set objDict = Nothing
