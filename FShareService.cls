@@ -128,14 +128,14 @@ Public Function Login(Optional CredentialType As CredentialType = UserInput, Opt
         strUserAgent = UserAgent
     End If
     strRequestBody = "{ " & _
-                Quote("user_email") & ": " & Quote(UserEmail) & ", " & _
-                Quote("password") & ": " & Quote(Password) & ", " & _
-                Quote("app_key") & ": " & Quote(AppKey) & " " & _
+                Quote("user_email") & ": " & Quote(strUserEmail) & ", " & _
+                Quote("password") & ": " & Quote(strPassword) & ", " & _
+                Quote("app_key") & ": " & Quote(strAppKey) & " " & _
                 "}"
     Set objWinHTTP = New WinHttp.WinHttpRequest
     With objWinHTTP
         .Open "POST", "https://api.fshare.vn/api/user/login"
-        .SetRequestHeader "User-Agent", UserAgent
+        .SetRequestHeader "User-Agent", strUserAgent
         .SetRequestHeader "Accept", "application/json"
         .Send strRequestBody
         If .Status = 200 Then
