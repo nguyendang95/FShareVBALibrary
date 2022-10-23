@@ -155,6 +155,8 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
     Dim decCurrentEndByte As Variant, decChunkSize As Variant, decCurrentStartByte As Variant
     Dim strFile As String
     Dim objRandom As Random
+    Dim objFSO As Scripting.FileSystemObject
+    Dim objFile As Scripting.File
     strFile = DestinationFolder & "\" & GetFileNameFromURL(URL)
     decCurrentStartByte = CDec(decCurrentStartByte)
     decChunkSize = CDec(decChunkSize)
@@ -188,28 +190,89 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
                 .Send
                 .WaitForResponse
             End With
-            Set objRandom = New Random
-            objRandom.OpenFile strFile, ForAppending
-            objRandom.WriteBytes objWinHTTP.ResponseBody
-            objRandom.CloseFile
-            Set objWinHTTP = Nothing
-            Set objRandom = Nothing
+            If BytesToGigabytes(decTotalSize) > 2 Then
+                Set objRandom = New Random
+                objRandom.OpenFile strFile, ForAppending
+                objRandom.WriteBytes objWinHTTP.ResponseBody
+                objRandom.CloseFile
+                Set objWinHTTP = Nothing
+                Set objRandom = Nothing
+            Else
+                Open strFile For Binary Access Write As #1
+                Seek #1, LOF(1) + 1
+                Put #1, , objWinHTTP.ResponseBody
+                Close #1
+            End If
             decCurrentStartByte = decCurrentStartByte + decChunkSize + 1
             decCurrentEndByte = decCurrentEndByte + decChunkSize + 1
             If decCurrentEndByte > decTotalSize Then decCurrentEndByte = decTotalSize
         Loop
+        Set objFSO = New Scripting.FileSystemObject
+        Set objFile = objFSO.GetFile(strFile)
+        objFile.Name = URLDecode(GetFileNameFromURL(URL))
     Else: Err.Raise vbObjectError + objWinHTTP.Status, , "Not logged in yet!"
     End If
     Set objWinHTTP = Nothing
+    Set objFSO = Nothing
+    Set objFile = Nothing
 End Sub
+
+Private Function URLDecode(ByVal strIn As String) As String
+    On Error Resume Next
+    Dim sl&, tl&, key$, kl&
+    sl = 1:    tl = 1: key = "%": kl = Len(key)
+    sl = InStr(sl, strIn, key, 1)
+    Do While sl > 0
+        If (tl = 1 And sl <> 1) Or tl < sl Then
+            URLDecode = URLDecode & Mid(strIn, tl, sl - tl)
+        End If
+        Dim hh$, hi$, hl$, a$
+        Select Case UCase(Mid(strIn, sl + kl, 1))
+            Case "U"    'Unicode URLEncode
+                a = Mid(strIn, sl + kl + 1, 4)
+                URLDecode = URLDecode & ChrW("&H" & a)
+                sl = sl + 6
+            Case "E"    'UTF-8 URLEncode
+                hh = Mid(strIn, sl + kl, 2)
+                a = Int("&H" & hh)    'ascii?
+                If Abs(a) < 128 Then
+                    sl = sl + 3
+                    URLDecode = URLDecode & Chr(a)
+                Else
+                    hi = Mid(strIn, sl + 3 + kl, 2)
+                    hl = Mid(strIn, sl + 6 + kl, 2)
+                    a = ("&H" & hh And &HF) * 2 ^ 12 Or ("&H" & hi And &H3F) * 2 ^ 6 Or ("&H" & hl And &H3F)
+                    If a < 0 Then a = a + 65536
+                    URLDecode = URLDecode & ChrW(a)
+                    sl = sl + 9
+                End If
+            Case Else    'Asc URLEncode
+                hh = Mid(strIn, sl + kl, 2)    '??
+                a = Int("&H" & hh)    'ascii?
+
+                If Abs(a) < 128 Then
+                    sl = sl + 3
+                Else
+                    hi = Mid(strIn, sl + 3 + kl, 2)    '??
+                    'a = Int("&H" & hh & hi) '?ascii?
+                    a = (Int("&H" & hh) - 194) * 64 + Int("&H" & hi)
+                    sl = sl + 6
+                End If
+                URLDecode = URLDecode & ChrW(a)
+        End Select
+        tl = sl
+        sl = InStr(sl, strIn, key, 1)
+    Loop
+    URLDecode = URLDecode & Mid(strIn, tl)
+End Function
+
+Private Function BytesToGigabytes(Bytes As Variant) As Variant
+    BytesToGigabytes = CDec(Round(CDec(Bytes) / 1024 / 1024 / 1024, 1))
+End Function
 
 Private Function GetFileNameFromURL(URL As String) As String
     Dim strResult As String
     strResult = Mid(URL, InStrRev(URL, "/") + 1, Len(URL) - InStrRev(URL, "/") + 1)
-    strResult = Replace(strResult, "%20", " ")
-    strResult = Replace(strResult, "%22", Chr(34))
-    strResult = Replace(strResult, "%27", Chr(39))
-    strResult = Replace(strResult, "%25", "%")
     GetFileNameFromURL = strResult
 End Function
 
