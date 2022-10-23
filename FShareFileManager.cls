@@ -151,18 +151,14 @@ End Sub
 
 Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
     Dim objWinHTTP As WinHttp.WinHttpRequest
-    Dim objFSO As Scripting.FileSystemObject, objFile As Scripting.File, objTempFile As Scripting.File, objTextStream As Scripting.TextStream
-    Dim objStream As ADODB.Stream
     Dim decTotalSize As Variant
     Dim decCurrentEndByte As Variant, decChunkSize As Variant, decCurrentStartByte As Variant
     Dim strFile As String
-    Dim blnFirstLoop As Boolean
+    Dim objRandom As Random
     strFile = DestinationFolder & "\" & GetFileNameFromURL(URL)
     decCurrentStartByte = CDec(decCurrentStartByte)
     decChunkSize = CDec(decChunkSize)
     decChunkSize = 256000000
-    blnFirstLoop = True
-    Set objFSO = New Scripting.FileSystemObject
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "HEAD", URL, True
@@ -192,38 +188,19 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
                 .Send
                 .WaitForResponse
             End With
-            Set objStream = New ADODB.Stream
-            objStream.Open
-            objStream.Type = adTypeBinary
-            objStream.Write objWinHTTP.ResponseBody
+            Set objRandom = New Random
+            objRandom.OpenFile strFile, ForAppending
+            objRandom.WriteBytes objWinHTTP.ResponseBody
+            objRandom.CloseFile
             Set objWinHTTP = Nothing
-            If blnFirstLoop Then
-                objStream.SaveToFile strFile
-                blnFirstLoop = False
-                objStream.Close
-            Else
-                blnFirstLoop = False
-                objStream.SaveToFile strFile & ".tmp", adSaveCreateOverWrite
-                objStream.Close
-                Set objTempFile = objFSO.GetFile(strFile & ".tmp")
-                Set objFile = objFSO.GetFile(strFile)
-                Set objTextStream = objFile.OpenAsTextStream(ForAppending, TristateFalse)
-                objTextStream.Write objTempFile.OpenAsTextStream().Read(objTempFile.Size)
-                objTextStream.Close
-            End If
-            Set objStream = Nothing
+            Set objRandom = Nothing
             decCurrentStartByte = decCurrentStartByte + decChunkSize + 1
             decCurrentEndByte = decCurrentEndByte + decChunkSize + 1
             If decCurrentEndByte > decTotalSize Then decCurrentEndByte = decTotalSize
         Loop
-        objTempFile.Delete
     Else: Err.Raise vbObjectError + objWinHTTP.Status, , "Not logged in yet!"
     End If
     Set objWinHTTP = Nothing
-    Set objFSO = Nothing
-    Set objFile = Nothing
-    Set objTextStream = Nothing
-    Set objTempFile = Nothing
 End Sub
 
 Private Function GetFileNameFromURL(URL As String) As String
@@ -579,10 +556,12 @@ Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optiona
     Set colFileOrFolderInfos = Nothing
 End Function
 
-Public Function GetTopFollowMovie() As FShareTopFollowMovie
+Public Function GetTopFollowMovie() As FshareTopFollowMovies
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Object
     Dim objTopFollowMovie As FShareTopFollowMovie
+    Dim colTopFollowMovies As FShareFileOrFolderInfos
+    Dim i As Long
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "GET", "https://api.fshare.vn/api/fileops/getTopFollowMovie"
@@ -592,20 +571,25 @@ Public Function GetTopFollowMovie() As FShareTopFollowMovie
         .Send
         If .Status = 200 Then
             Set objDict = JsonConverter.ParseJson(.ResponseText)
-            Set objTopFollowMovie = New FShareTopFollowMovie
-            With objTopFollowMovie
-                .Name = objDict.Item("name")
-                .LinkCode = objDict.Item("linkcode")
-                .ImgLink = objDict.Item("img_link")
-                .Followers = objDict.Item("followers")
-            End With
-            Set GetTopFollowMovie = objTopFollowMovie
+            Set colTopFollowMovies = New FshareTopFollowMovies
+            For i = 1 To objDict.Count
+                Set objTopFollowMovie = New FShareTopFollowMovie
+                With objTopFollowMovie
+                    .Name = objDict.Item(i)("name")
+                    .LinkCode = objDict.Item(i)("linkcode")
+                    .ImgLink = objDict.Item(i)("img_link")
+                    .Followers = objDict.Item(i)("followers")
+                End With
+                colTopFollowMovies.Add objTopFollowMovie
+            Next
+            Set GetTopFollowMovie = colTopFollowMovies
         Else: Err.Raise vbObjectError + .Status, , .StatusText
         End If
     End With
     Set objWinHTTP = Nothing
     Set objDict = Nothing
     Set objTopFollowMovie = Nothing
+    Set colTopFollowMovies = Nothing
 End Function
 
 Public Function GetListFollow() As FShareListFollow
