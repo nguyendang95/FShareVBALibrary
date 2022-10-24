@@ -190,19 +190,12 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
                 .Send
                 .WaitForResponse
             End With
-            If BytesToGigabytes(decTotalSize) > 2 Then
-                Set objRandom = New Random
-                objRandom.OpenFile strFile, ForAppending
-                objRandom.WriteBytes objWinHTTP.ResponseBody
-                objRandom.CloseFile
-                Set objWinHTTP = Nothing
-                Set objRandom = Nothing
-            Else
-                Open strFile For Binary Access Write As #1
-                Seek #1, LOF(1) + 1
-                Put #1, , objWinHTTP.ResponseBody
-                Close #1
-            End If
+            Set objRandom = New Random
+            objRandom.OpenFile strFile, ForAppending
+            objRandom.WriteBytes objWinHTTP.ResponseBody
+            objRandom.CloseFile
+            Set objWinHTTP = Nothing
+            Set objRandom = Nothing
             decCurrentStartByte = decCurrentStartByte + decChunkSize + 1
             decCurrentEndByte = decCurrentEndByte + decChunkSize + 1
             If decCurrentEndByte > decTotalSize Then decCurrentEndByte = decTotalSize
@@ -284,7 +277,7 @@ Public Function GetUsersFileOrFolderList(PageIndex As Integer, Ext As String, Op
     Dim i As Long
     Set objWinHTTP = ActiveService
     With objWinHTTP
-        .Open "GET", "https://api.fshare.vn/api/fileops/list?ext=" & Ext & "?path=" & Path & "?dirOnly=" & CStr(DirOnly) & "?limit=" & CStr(Limit)
+        .Open "GET", "https://api.fshare.vn/api/fileops/list?ext=" & Ext & "?path=" & Path & "?dirOnly=" & CStr(DirOnly) & "?limit=" & CStr(Limit) & "?pageIndex=" & CStr(PageIndex)
         .SetRequestHeader "Content-Type", "application/json"
         .SetRequestHeader "Accept", "application/json"
         .SetRequestHeader "session_id", SessionId
