@@ -164,8 +164,6 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
     Set objWinHTTP = ActiveService
     With objWinHTTP
         .Open "HEAD", URL, True
-        .SetRequestHeader "session_id", SessionId
-        .SetRequestHeader "User-Agent", UserAgent
         .Send
         .WaitForResponse
     End With
@@ -202,7 +200,7 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
         Loop
         Set objFSO = New Scripting.FileSystemObject
         Set objFile = objFSO.GetFile(strFile)
-        objFile.Name = URLDecode(GetFileNameFromURL(URL))
+        If objFile.Name <> URLDecode(GetFileNameFromURL(URL)) Then objFile.Name = URLDecode(GetFileNameFromURL(URL))
     Else: Err.Raise vbObjectError + objWinHTTP.Status, , "Not logged in yet!"
     End If
     Set objWinHTTP = Nothing
@@ -277,7 +275,7 @@ Public Function GetUsersFileOrFolderList(PageIndex As Integer, Ext As String, Op
     Dim i As Long
     Set objWinHTTP = ActiveService
     With objWinHTTP
-        .Open "GET", "https://api.fshare.vn/api/fileops/list?ext=" & Ext & "?path=" & Path & "?dirOnly=" & CStr(DirOnly) & "?limit=" & CStr(Limit) & "?pageIndex=" & CStr(PageIndex)
+        .Open "GET", "https://api.fshare.vn/api/fileops/list?ext=" & Ext & "?path=" & Path & "?dirOnly=" & CStr(DirOnly) & "?limit=" & CStr(Limit)
         .SetRequestHeader "Content-Type", "application/json"
         .SetRequestHeader "Accept", "application/json"
         .SetRequestHeader "session_id", SessionId
@@ -557,7 +555,7 @@ Public Sub Duplicate(FileToDuplicateLinkCode As String, DestinationFolderLinkCod
     Set objDict = Nothing
 End Sub
 
-Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optional Path As String = vbNullString, Optional DirOnly As Integer = 0, Optional Limit As Integer = 100) As FShareFileOrFolderInfos
+Public Function GetPublicFolderList(PageIndex As Integer, URL As String, Optional DirOnly As Integer = 0, Optional Limit As Integer = 100) As FShareFileOrFolderInfos
     Dim objWinHTTP As WinHttp.WinHttpRequest
     Dim objDict As Object
     Dim objFileOrFolderInfo As FShareFileOrFolderInfo
