@@ -63,7 +63,7 @@ Attribute VB_Exposed = False
                                ByVal lpOverlapped As Long) As Long
 
       Private Declare PtrSafe Function CreateFile Lib "kernel32" _
-              Alias "CreateFileA" (ByVal lpFileName As String, _
+              Alias "CreateFileW" (ByVal lpFileName As LongPtr, _
                                    ByVal dwDesiredAccess As Long, _
                                    ByVal dwShareMode As Long, _
                                    ByVal lpSecurityAttributes As Long, _
@@ -109,7 +109,7 @@ Attribute VB_Exposed = False
                                ByVal lpOverlapped As Long) As Long
 
       Private Declare Function CreateFile Lib "kernel32" _
-              Alias "CreateFileA" (ByVal lpFileName As String, _
+              Alias "CreateFileA" (ByVal lpFileName As Long, _
                                    ByVal dwDesiredAccess As Long, _
                                    ByVal dwShareMode As Long, _
                                    ByVal lpSecurityAttributes As Long, _
@@ -166,10 +166,10 @@ Attribute VB_Exposed = False
         End If
         Select Case Mode
             Case ForReadingOrWriting
-                hFile = CreateFile(sFileName, GENERIC_WRITE Or GENERIC_READ, 0, _
+                hFile = CreateFile(StrPtr(sFileName), GENERIC_WRITE Or GENERIC_READ, 0, _
                            0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
             Case ForAppending
-                hFile = CreateFile(sFileName, FILE_APPEND_DATA, 0, _
+                hFile = CreateFile(StrPtr(sFileName), FILE_APPEND_DATA, 0, _
                            0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
         End Select
         If hFile = INVALID_HANDLE_VALUE Then

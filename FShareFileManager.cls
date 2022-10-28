@@ -155,9 +155,7 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
     Dim decCurrentEndByte As Variant, decChunkSize As Variant, decCurrentStartByte As Variant
     Dim strFile As String
     Dim objRandom As Random
-    Dim objFSO As Scripting.FileSystemObject
-    Dim objFile As Scripting.File
-    strFile = DestinationFolder & "\" & GetFileNameFromURL(URL)
+    strFile = DestinationFolder & "\" & GetFileNameFromURL(URLDecode(URL))
     decCurrentStartByte = CDec(decCurrentStartByte)
     decChunkSize = CDec(decChunkSize)
     decChunkSize = 256000000
@@ -198,14 +196,9 @@ Private Sub DownloadFileFromURL(URL As String, DestinationFolder As String)
             decCurrentEndByte = decCurrentEndByte + decChunkSize + 1
             If decCurrentEndByte > decTotalSize Then decCurrentEndByte = decTotalSize
         Loop
-        Set objFSO = New Scripting.FileSystemObject
-        Set objFile = objFSO.GetFile(strFile)
-        If objFile.Name <> URLDecode(GetFileNameFromURL(URL)) Then objFile.Name = URLDecode(GetFileNameFromURL(URL))
     Else: Err.Raise vbObjectError + objWinHTTP.Status, , "Not logged in yet!"
     End If
     Set objWinHTTP = Nothing
-    Set objFSO = Nothing
-    Set objFile = Nothing
 End Sub
 
 Private Function URLDecode(ByVal strIn As String) As String
